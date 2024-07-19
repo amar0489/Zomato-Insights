@@ -1,0 +1,10 @@
+pandas
+numpy
+matplotlib
+seaborn
+charset_normalizer
+openpyxl
+skimpy
+ipywidgets
+ydata_profiling
+folium
