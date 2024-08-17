@@ -8,3 +8,6 @@ skimpy
 ipywidgets
 ydata_profiling
 folium
+streamlit
+plotly
+streamlit_folium
