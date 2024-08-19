@@ -1,10 +1,8 @@
 import streamlit as st
-import plotly.express as px
 import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 from folium.plugins import FastMarkerCluster
 
@@ -47,14 +45,21 @@ if page == 'Insights':
                              showlegend=True)])
         fig.update_layout(title_text='Top 5 Cuisines Ordered',
                           title_x=0.1,
-                          title_y=0.8,
+                          title_y=0.9,
                           legend=dict(
                             x=1.1,
                             y=0.5,
                             traceorder='normal'),
-                            width=500,
-                            height=400)
-        st.plotly_chart(fig)
+                          width=500,
+                          height=400)
+        st.plotly_chart(fig,use_container_width=True)
+    
+    with col[1]:
+        
+        st.markdown('Price range of Top 5 Cuisines')
+        rangecus=data.groupby(['Cuisines','Price range']).size().reset_index().rename(columns={0:'Count'})
+        rangecus=rangecus.sort_values(by='Count',ascending=False)
+        st.dataframe(rangecus.iloc[:5,:2],hide_index=True,use_container_width=True)  
 
         
     costlyrest = data.groupby(['Restaurant Name'])['Average Cost for two'].mean().reset_index()
@@ -70,7 +75,6 @@ if page == 'Insights':
 
     fig.update_layout(
         title='Top 10 High Priced Restaurants',
-        title_x=0.3,
         title_font=dict(size=24),
         xaxis_title='Restaurant Name',
         yaxis_title='Average Cost for Two',
@@ -125,16 +129,44 @@ if page == 'Insights':
 
     st.plotly_chart(fig)
 
+    rate=df.groupby(['Rating text','Rating color']).size().reset_index().rename(columns={0:'Count'})
+
+    fig = go.Figure(data=[
+    go.Bar(
+        x=rate['Rating text'],
+        y=rate['Count'],
+        marker=dict(color=['orange','darkgreen','yellow','white','red','green'])
+    )
+    ])
+
+    fig.update_layout(
+        title='Restaurants Ratings',
+        title_font=dict(size=24),
+        xaxis_title= 'Ratings'
+    )
+
+    st.plotly_chart(fig)
+
+
 elif page == 'Geographical Analysis':
 
     cuisines = ['All'] + list(df['Cuisines'].unique())
-    selected_option = st.selectbox("Select the cuisine", cuisines)
-    st.write(selected_option)
+    selected_cuisine = st.selectbox("Select the cuisine", cuisines)
+    st.write(selected_cuisine)
 
-    if selected_option == 'All':
+    localities = ['All'] + list(df['Locality'].unique())
+    selected_locality = st.selectbox("Select your locality", localities)
+    st.write(selected_locality)
+
+    if selected_cuisine == 'All' and selected_locality == 'All':
         data = df
+    elif selected_cuisine == 'All':
+        data = df[df['Locality'] == selected_locality]
+    elif selected_locality == 'All':
+        data = df[df['Cuisines'] == selected_cuisine]
     else:
-        data = df[df['Cuisines'] == selected_option]
+        data = df[(df['Cuisines'] == selected_cuisine) & (df['Locality'] == selected_locality)]
+    
 
     map = folium.Map(location=[28.4595, 77.4565], zoom_start=9.5)
 
